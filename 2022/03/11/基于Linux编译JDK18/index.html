@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.0.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.0.0/css/all.min.css" integrity="sha256-jTIdiMuX/e3DGJUGwl3pKSxuc6YOuqtJYkM0bGQESA4=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"zhnny.github.io","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.10.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="本文基于Ubuntu虚拟机，使用JDK17编译JDK18">
+<meta property="og:type" content="article">
+<meta property="og:title" content="基于Linux编译JDK18.md">
+<meta property="og:url" content="https://zhnny.github.io/2022/03/11/%E5%9F%BA%E4%BA%8ELinux%E7%BC%96%E8%AF%91JDK18/index.html">
+<meta property="og:site_name" content="zhanny&#39;s blog">
+<meta property="og:description" content="本文基于Ubuntu虚拟机，使用JDK17编译JDK18">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://s2.loli.net/2022/03/10/rnmFYi1UAbQa7H8.png">
+<meta property="article:published_time" content="2022-03-10T17:52:53.000Z">
+<meta property="article:modified_time" content="2022-03-10T17:56:04.529Z">
+<meta property="article:author" content="zhanny">
+<meta property="article:tag" content="Java">
+<meta property="article:tag" content="Linux">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://s2.loli.net/2022/03/10/rnmFYi1UAbQa7H8.png">
+
+
+<link rel="canonical" href="https://zhnny.github.io/2022/03/11/%E5%9F%BA%E4%BA%8ELinux%E7%BC%96%E8%AF%91JDK18/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://zhnny.github.io/2022/03/11/%E5%9F%BA%E4%BA%8ELinux%E7%BC%96%E8%AF%91JDK18/","path":"2022/03/11/基于Linux编译JDK18/","title":"基于Linux编译JDK18.md"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>基于Linux编译JDK18.md | zhanny's blog</title>
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">zhanny's blog</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-%E6%A6%82%E8%BF%B0"><span class="nav-text">1.概述</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-%E5%AE%89%E8%A3%85Ubuntu%E8%99%9A%E6%8B%9F%E6%9C%BA"><span class="nav-text">2.安装Ubuntu虚拟机</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-%E9%85%8D%E7%BD%AEUbuntu"><span class="nav-text">3.配置Ubuntu</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-1-%E9%85%8D%E7%BD%AESSH%EF%BC%88%E5%8F%AF%E9%80%89%EF%BC%89"><span class="nav-text">3.1. 配置SSH（可选）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-2-%E4%B8%8B%E8%BD%BDvim%EF%BC%88%E5%8F%AF%E9%80%89%EF%BC%89"><span class="nav-text">3.2. 下载vim（可选）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-3-%E9%85%8D%E7%BD%AE%E5%AE%89%E8%A3%85%E6%BA%90"><span class="nav-text">3.3. 配置安装源</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-%E5%AE%89%E8%A3%85%E7%BC%96%E8%AF%91%E5%B7%A5%E5%85%B7"><span class="nav-text">4.安装编译工具</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#4-1-%E5%B7%A5%E5%85%B7%E9%93%BE-Toolchain"><span class="nav-text">4.1. 工具链(Toolchain)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-2-%E5%9F%BA%E7%A1%80JDK%EF%BC%88Boot-JDK%EF%BC%89"><span class="nav-text">4.2. 基础JDK（Boot JDK）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-3-%E9%93%BE%E6%8E%A5%E5%BA%93%EF%BC%88External-Library%EF%BC%89"><span class="nav-text">4.3. 链接库（External Library）</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#4-3-1-FreeType"><span class="nav-text">4.3.1. FreeType</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#4-3-2-CUPS"><span class="nav-text">4.3.2. CUPS</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#4-3-3-X11"><span class="nav-text">4.3.3. X11</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#4-3-4-ALSA"><span class="nav-text">4.3.4. ALSA</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#4-3-5-libffi"><span class="nav-text">4.3.5. libffi</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-4-%E6%9E%84%E5%BB%BA%E5%B7%A5%E5%85%B7%EF%BC%88Build-Tools%EF%BC%89"><span class="nav-text">4.4. 构建工具（Build Tools）</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#4-4-1-Autoconf"><span class="nav-text">4.4.1. Autoconf</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#4-4-2-GNU-Make"><span class="nav-text">4.4.2. GNU Make</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#4-4-3-GNU-Bash"><span class="nav-text">4.4.3. GNU Bash</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-%E9%85%8D%E7%BD%AEConfigure"><span class="nav-text">5. 配置Configure</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#6-%E9%85%8D%E7%BD%AEMake"><span class="nav-text">6.  配置Make</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#7-%E7%BC%96%E8%AF%91JDK"><span class="nav-text">7. 编译JDK</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#8-%E7%BC%96%E8%AF%91%E8%BE%93%E5%87%BA"><span class="nav-text">8. 编译输出</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#9-%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="nav-text">9. 参考资料</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">zhanny</p>
+  <div class="site-description" itemprop="description">我想，总有什么是想记录的吧</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">5</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">3</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/zhnny" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;zhnny" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:zhnny@foxmail.com" title="E-Mail → mailto:zhnny@foxmail.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://plus.google.com/yourname" title="Google → https:&#x2F;&#x2F;plus.google.com&#x2F;yourname" rel="noopener" target="_blank"><i class="fab fa-google fa-fw"></i>Google</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://twitter.com/yourname" title="Twitter → https:&#x2F;&#x2F;twitter.com&#x2F;yourname" rel="noopener" target="_blank"><i class="fab fa-twitter fa-fw"></i>Twitter</a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://zhnny.github.io/2022/03/11/%E5%9F%BA%E4%BA%8ELinux%E7%BC%96%E8%AF%91JDK18/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="zhanny">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="zhanny's blog">
+      <meta itemprop="description" content="我想，总有什么是想记录的吧">
+    </span>
+    
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="基于Linux编译JDK18.md | zhanny's blog">
+      <meta itemprop="description" content="本文基于Ubuntu虚拟机，使用JDK17编译JDK18">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          基于Linux编译JDK18.md
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2022-03-11 01:52:53 / 修改时间：01:56:04" itemprop="dateCreated datePublished" datetime="2022-03-11T01:52:53+08:00">2022-03-11</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E7%BC%96%E8%AF%91%E5%99%A8/" itemprop="url" rel="index"><span itemprop="name">编译器</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-break"></span>
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>3.9k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>4 分钟</span>
+    </span>
+</div>
+
+            <div class="post-description">本文基于Ubuntu虚拟机，使用JDK17编译JDK18</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h2 id="1-概述"><a href="#1-概述" class="headerlink" title="1.概述"></a>1.概述</h2><p>JDK都没手动编译过，敢说自己是Java程序员吗？（By 羊哥——<a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1zT4y177Zf?spm_id_from=333.999.0.0">JDK都没手动编译过，敢说自己是Java程序员吗？实战编译Java源码（JDK源码,JVM）视频教程_哔哩哔哩_bilibili</a>）</p>
+<ul>
+<li>自己动手编译JDK理论上可以得到更适合自己电脑的JDK</li>
+<li>可以自己在源码中加入自己的DIY部分，或许会好玩？</li>
+<li>阅读JDK源码的时候可以修改测试一些功能，在源码中加入自己的笔记</li>
+</ul>
+<p>本文基于Ubuntu虚拟机，使用JDK17编译JDK18（应该是目前官方最新的release版本）</p>
+<h2 id="2-安装Ubuntu虚拟机"><a href="#2-安装Ubuntu虚拟机" class="headerlink" title="2.安装Ubuntu虚拟机"></a>2.安装Ubuntu虚拟机</h2><p>安装好虚拟机软件，笔者使用的是VMware</p>
+<p>在Ubuntu官网下载好UbuntuISO镜像，笔者下载的是Ubuntu20.04 desktop</p>
+<p>下载地址为：</p>
+<p><a target="_blank" rel="noopener" href="https://cn.ubuntu.com/download/desktop">下载Ubuntu桌面系统 | Ubuntu</a></p>
+<p>下载好后启动VMware，设置虚拟机的一些配置信息，建议配置给大一点，毕竟是编译程序，CPU核心多一点会比较快</p>
+<p>配置好后挂载ISO镜像，启动虚拟机，配置Ubuntu的一些信息（主要是密码），等待安装完成</p>
+<p><img src="https://s2.loli.net/2022/03/10/rnmFYi1UAbQa7H8.png" alt="image-20220310144014491"></p>
+<h2 id="3-配置Ubuntu"><a href="#3-配置Ubuntu" class="headerlink" title="3.配置Ubuntu"></a>3.配置Ubuntu</h2><h3 id="3-1-配置SSH（可选）"><a href="#3-1-配置SSH（可选）" class="headerlink" title="3.1. 配置SSH（可选）"></a>3.1. 配置SSH（可选）</h3><p>配置SSH工具后就可以在虚拟机外进行SSH连接并操作，当然，可以直接在虚拟机内操作</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo apt install openssh-server</span><br></pre></td></tr></table></figure>
+
+<p>参考链接：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/livelab/p/13033175.html">如何在Ubuntu 20.04上启用SSH - GlaryJoker - 博客园 (cnblogs.com)</a></p>
+<h3 id="3-2-下载vim（可选）"><a href="#3-2-下载vim（可选）" class="headerlink" title="3.2. 下载vim（可选）"></a>3.2. 下载vim（可选）</h3><p>vim是Linux上普遍使用的终端文本编辑工具，当然，可以选择其他文本工具</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo apt install vim</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="3-3-配置安装源"><a href="#3-3-配置安装源" class="headerlink" title="3.3. 配置安装源"></a>3.3. 配置安装源</h3><p>Ubuntu自带的安装源比较慢，此处笔者配置的是阿里云的源</p>
+<p>参考链接：</p>
+<p><a target="_blank" rel="noopener" href="https://developer.aliyun.com/mirror/ubuntu">ubuntu镜像-ubuntu下载地址-ubuntu安装教程-阿里巴巴开源镜像站 (aliyun.com)</a></p>
+<p>备份原文件（可选）：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo cp /etc/apt/sources.list /etc/apt/sources.list.bak</span><br></pre></td></tr></table></figure>
+
+<p>删除原文件：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo rm -rf /etc/apt/sources.list</span><br></pre></td></tr></table></figure>
+
+<p>编辑镜像文件：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo vim /etc/apt/sources.list</span><br></pre></td></tr></table></figure>
+
+<p>粘贴入镜像站给出的地址：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">deb http://mirrors.aliyun.com/ubuntu/ focal main restricted universe multiverse</span><br><span class="line">deb-src http://mirrors.aliyun.com/ubuntu/ focal main restricted universe multiverse</span><br><span class="line"></span><br><span class="line">deb http://mirrors.aliyun.com/ubuntu/ focal-security main restricted universe multiverse</span><br><span class="line">deb-src http://mirrors.aliyun.com/ubuntu/ focal-security main restricted universe multiverse</span><br><span class="line"></span><br><span class="line">deb http://mirrors.aliyun.com/ubuntu/ focal-updates main restricted universe multiverse</span><br><span class="line">deb-src http://mirrors.aliyun.com/ubuntu/ focal-updates main restricted universe multiverse</span><br><span class="line"></span><br><span class="line">deb http://mirrors.aliyun.com/ubuntu/ focal-proposed main restricted universe multiverse</span><br><span class="line">deb-src http://mirrors.aliyun.com/ubuntu/ focal-proposed main restricted universe multiverse</span><br><span class="line"></span><br><span class="line">deb http://mirrors.aliyun.com/ubuntu/ focal-backports main restricted universe multiverse</span><br><span class="line">deb-src http://mirrors.aliyun.com/ubuntu/ focal-backports main restricted universe multiverse</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="4-安装编译工具"><a href="#4-安装编译工具" class="headerlink" title="4.安装编译工具"></a>4.安装编译工具</h2><p>根据openjdk官方给出的编译指导（<a target="_blank" rel="noopener" href="https://openjdk.java.net/groups/build/doc/building.html">Building the JDK (java.net)</a>），分别需要安装以下工具：</p>
+<h3 id="4-1-工具链-Toolchain"><a href="#4-1-工具链-Toolchain" class="headerlink" title="4.1. 工具链(Toolchain)"></a>4.1. 工具链(Toolchain)</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo apt-get install build-essential</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="4-2-基础JDK（Boot-JDK）"><a href="#4-2-基础JDK（Boot-JDK）" class="headerlink" title="4.2. 基础JDK（Boot JDK）"></a>4.2. 基础JDK（Boot JDK）</h3><p>需要邻近版本的JDK，一般选用前一个版本</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo apt-get install openjdk-17-jdk </span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="4-3-链接库（External-Library）"><a href="#4-3-链接库（External-Library）" class="headerlink" title="4.3. 链接库（External Library）"></a>4.3. 链接库（External Library）</h3><h4 id="4-3-1-FreeType"><a href="#4-3-1-FreeType" class="headerlink" title="4.3.1. FreeType"></a>4.3.1. FreeType</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo apt-get install libfreetype6-dev</span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="4-3-2-CUPS"><a href="#4-3-2-CUPS" class="headerlink" title="4.3.2. CUPS"></a>4.3.2. CUPS</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo apt-get install libcups2-dev</span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="4-3-3-X11"><a href="#4-3-3-X11" class="headerlink" title="4.3.3. X11"></a>4.3.3. X11</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo apt-get install libx11-dev libxext-dev libxrender-dev libxrandr-dev libxtst-dev libxt-dev</span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="4-3-4-ALSA"><a href="#4-3-4-ALSA" class="headerlink" title="4.3.4. ALSA"></a>4.3.4. ALSA</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo apt-get install libasound2-dev</span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="4-3-5-libffi"><a href="#4-3-5-libffi" class="headerlink" title="4.3.5. libffi"></a>4.3.5. libffi</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo apt-get install libffi-dev</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="4-4-构建工具（Build-Tools）"><a href="#4-4-构建工具（Build-Tools）" class="headerlink" title="4.4. 构建工具（Build Tools）"></a>4.4. 构建工具（Build Tools）</h3><h4 id="4-4-1-Autoconf"><a href="#4-4-1-Autoconf" class="headerlink" title="4.4.1. Autoconf"></a>4.4.1. Autoconf</h4><p>需要最低版本2.69</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo apt-get install autoconf</span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="4-4-2-GNU-Make"><a href="#4-4-2-GNU-Make" class="headerlink" title="4.4.2. GNU Make"></a>4.4.2. GNU Make</h4><p>需要最低版本3.81</p>
+<h4 id="4-4-3-GNU-Bash"><a href="#4-4-3-GNU-Bash" class="headerlink" title="4.4.3. GNU Bash"></a>4.4.3. GNU Bash</h4><p>需要最低版本3.2</p>
+<h2 id="5-配置Configure"><a href="#5-配置Configure" class="headerlink" title="5. 配置Configure"></a>5. 配置Configure</h2><p>具体配置项请看：</p>
+<p><a target="_blank" rel="noopener" href="https://openjdk.java.net/groups/build/doc/building.html">Building the JDK (java.net)</a></p>
+<p>此处默认配置</p>
+<h2 id="6-配置Make"><a href="#6-配置Make" class="headerlink" title="6.  配置Make"></a>6.  配置Make</h2><p>具体配置项请看：</p>
+<p><a target="_blank" rel="noopener" href="https://openjdk.java.net/groups/build/doc/building.html">Building the JDK (java.net)</a></p>
+<p>此处默认配置</p>
+<h2 id="7-编译JDK"><a href="#7-编译JDK" class="headerlink" title="7. 编译JDK"></a>7. 编译JDK</h2><p>生成配置</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">bash configure</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>如果依赖库没装完或者存在问题，请根据输出的提示安装或者修改</li>
+</ul>
+<p>编译全部</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">make all</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="8-编译输出"><a href="#8-编译输出" class="headerlink" title="8. 编译输出"></a>8. 编译输出</h2><p>编译完成后编译后的文件在<code>build</code>文件夹下</p>
+<p>查看文件：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">zhanny@ubuntu:~/Downloads/jdk18$ ls build/linux-x86_64-server-release/</span><br><span class="line">bootcycle-spec.gmk  build.log.old  configure.log      images    make-support</span><br><span class="line">buildjdk-spec.gmk   buildtools     configure-support  jdk       spec.gmk</span><br><span class="line">build.log           compare.sh     hotspot            Makefile  support</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>其中<code>images</code>就是release文件夹</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">zhanny@ubuntu:~/Downloads/jdk18$ ls build/linux-x86_64-server-release/images/</span><br><span class="line">docs  docs-javase  docs-reference  gengraphs  jdk  jmods  sec-bin.zip  symbols  test</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p><code>images</code>下的<code>jdk</code>的<code>bin</code>下就是常见的Java编译器</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">zhanny@ubuntu:~/Downloads/jdk18$ ls build/linux-x86_64-server-release/images/jdk/bin/</span><br><span class="line">jar                  jconsole.debuginfo   jlink                 jstack.debuginfo</span><br><span class="line">jar.debuginfo        jdb                  jlink.debuginfo       jstat</span><br><span class="line">jarsigner            jdb.debuginfo        jmap                  jstatd</span><br><span class="line">jarsigner.debuginfo  jdeprscan            jmap.debuginfo        jstatd.debuginfo</span><br><span class="line">java                 jdeprscan.debuginfo  jmod                  jstat.debuginfo</span><br><span class="line">javac                jdeps                jmod.debuginfo        jwebserver</span><br><span class="line">javac.debuginfo      jdeps.debuginfo      jpackage              jwebserver.debuginfo</span><br><span class="line">java.debuginfo       jfr                  jpackage.debuginfo    keytool</span><br><span class="line">javadoc              jfr.debuginfo        jps                   keytool.debuginfo</span><br><span class="line">javadoc.debuginfo    jhsdb                jps.debuginfo         rmiregistry</span><br><span class="line">javap                jhsdb.debuginfo      jrunscript            rmiregistry.debuginfo</span><br><span class="line">javap.debuginfo      jimage               jrunscript.debuginfo  serialver</span><br><span class="line">jcmd                 jimage.debuginfo     jshell                serialver.debuginfo</span><br><span class="line">jcmd.debuginfo       jinfo                jshell.debuginfo</span><br><span class="line">jconsole             jinfo.debuginfo      jstack</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="9-参考资料"><a href="#9-参考资料" class="headerlink" title="9. 参考资料"></a>9. 参考资料</h2><p>[1]<a target="_blank" rel="noopener" href="https://openjdk.java.net/groups/build/doc/building.html">Building the JDK (java.net)</a></p>
+<p>[2]<a target="_blank" rel="noopener" href="https://github.com/openjdk/jdk18">openjdk&#x2F;jdk18: JDK 18 development (github.com)</a></p>
+<p>[3]<a target="_blank" rel="noopener" href="https://www.jianshu.com/p/d03ef2e89801">真·手把手，从头教你编译JDK - 简书 (jianshu.com)</a></p>
+<p>[4]<a target="_blank" rel="noopener" href="https://www.jianshu.com/p/108c984f8872">实战:自己编译JDK - 简书 (jianshu.com)</a></p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Java/" rel="tag"># Java</a>
+              <a href="/tags/Linux/" rel="tag"># Linux</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2022/03/09/Git%E5%91%BD%E4%BB%A4%E6%89%8B%E5%86%8C/" rel="prev" title="Git命令手册">
+                  <i class="fa fa-chevron-left"></i> Git命令手册
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+    <div class="comments" id="lv-container" data-id="city" data-uid="MTAyMC81NTY4OS8zMjE1Ng=="></div>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">zhanny</span>
+</div>
+<div class="wordcount">
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-line"></i>
+    </span>
+    <span title="站点总字数">37k</span>
+  </span>
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">34 分钟</span>
+  </span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="https://cdn.jsdelivr.net/npm/hexo-generator-searchdb@1.4.0/dist/search.js" integrity="sha256-vXZMYLEqsROAXkEw93GGIvaB2ab+QW6w3+1ahD9nXXA=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+  
+
+
+
+
+<script src="/js/third-party/comments/livere.js"></script>
+
+</body>
+</html>
