@@ -592,7 +592,7 @@
       </tags>
   </entry>
   <entry>
-    <title>基于Linux编译JDK18.md</title>
+    <title>基于Linux编译JDK18</title>
     <url>/2022/03/11/%E5%9F%BA%E4%BA%8ELinux%E7%BC%96%E8%AF%91JDK18/</url>
     <content><![CDATA[<h2 id="1-概述"><a href="#1-概述" class="headerlink" title="1.概述"></a>1.概述</h2><p>JDK都没手动编译过，敢说自己是Java程序员吗？（By 羊哥——<a href="https://www.bilibili.com/video/BV1zT4y177Zf?spm_id_from=333.999.0.0">JDK都没手动编译过，敢说自己是Java程序员吗？实战编译Java源码（JDK源码,JVM）视频教程_哔哩哔哩_bilibili</a>）</p>
 <ul>
