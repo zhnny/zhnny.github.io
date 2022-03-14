@@ -937,4 +937,152 @@
         <tag>JVM</tag>
       </tags>
   </entry>
+  <entry>
+    <title>C与Java中的动态数组</title>
+    <url>/2022/03/15/C%E4%B8%8EJava%E4%B8%AD%E7%9A%84%E5%8A%A8%E6%80%81%E6%95%B0%E7%BB%84/</url>
+    <content><![CDATA[<h2 id="1-引言"><a href="#1-引言" class="headerlink" title="1. 引言"></a>1. 引言</h2><p>在实际的编程中，往往会发生这种情况，即所需的内存空间取决于实际输入的数据，而无法预先确定。对于这种问题，用静态数组的办法很难解决。</p>
+<p>动态数组，是相对于静态数组而言。静态数组的长度是预先定义好的，在整个程序中，一旦给定大小后就无法改变。而动态数组则不然，它可以随程序需要而重新指定大小。</p>
+<h2 id="2-Java中的动态数组"><a href="#2-Java中的动态数组" class="headerlink" title="2. Java中的动态数组"></a>2. Java中的动态数组</h2><p>Java动态数组是一种可以任意伸缩数组长度的对象，在Java中比较常用的是ArrayList，ArrayList是javaAPI中自带的java.util.ArrayList。</p>
+<p>在JDK1.8源码中，ArrayList的自动增长以适应数组长度的实现代码如下：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Increases the capacity to ensure that it can hold at least the</span></span><br><span class="line"><span class="comment"> * number of elements specified by the minimum capacity argument.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> minCapacity the desired minimum capacity</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">grow</span><span class="params">(<span class="type">int</span> minCapacity)</span> &#123;</span><br><span class="line">    <span class="comment">// overflow-conscious code</span></span><br><span class="line">    <span class="type">int</span> <span class="variable">oldCapacity</span> <span class="operator">=</span> elementData.length;</span><br><span class="line">    <span class="type">int</span> <span class="variable">newCapacity</span> <span class="operator">=</span> oldCapacity + (oldCapacity &gt;&gt; <span class="number">1</span>);</span><br><span class="line">    <span class="keyword">if</span> (newCapacity - minCapacity &lt; <span class="number">0</span>)</span><br><span class="line">        newCapacity = minCapacity;</span><br><span class="line">    <span class="keyword">if</span> (newCapacity - MAX_ARRAY_SIZE &gt; <span class="number">0</span>)</span><br><span class="line">        newCapacity = hugeCapacity(minCapacity);</span><br><span class="line">    <span class="comment">// minCapacity is usually close to size, so this is a win:</span></span><br><span class="line">    elementData = Arrays.copyOf(elementData, newCapacity);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>简言之，就是不断判断原来那个数组长度够不够用，不够就增加原来的一半，还不够就继续增加，然后再将原来的数组的值拷贝过来</p>
+<p>可见其存在一定的空间浪费和增长时反复拷贝的性能损失</p>
+<h2 id="3-C-x2F-C-中的动态数组"><a href="#3-C-x2F-C-中的动态数组" class="headerlink" title="3. C&#x2F;C++中的动态数组"></a>3. C&#x2F;C++中的动态数组</h2><p>C语言中，数组长度必须在创建数组时指定，并且只能是一个常数，不能是变量。动态数组的内存空间是从堆(heap)上分配(即动态分配)的。是通过执行代码而为其分配存储空间。当程序执行到这些语句时，才为其分配。程序员自己负责释放内存。</p>
+<p>C的动态数组示例：</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span>&#123;</span><br><span class="line">    <span class="type">int</span> arrLen;  <span class="comment">// 数组长度</span></span><br><span class="line">    <span class="type">int</span> *<span class="built_in">array</span>;  <span class="comment">// 数组指针</span></span><br><span class="line">    <span class="type">int</span> i;  <span class="comment">// 数组下标</span></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;输入数组长度：&quot;</span>);</span><br><span class="line">    <span class="built_in">scanf</span>(<span class="string">&quot;%d&quot;</span>, &amp;arrLen);</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 动态分配内存空间，如果失败就退出程序</span></span><br><span class="line">    <span class="built_in">array</span> = (<span class="type">int</span>*)<span class="built_in">malloc</span>( arrLen*<span class="keyword">sizeof</span>(<span class="type">int</span>) );</span><br><span class="line">    <span class="keyword">if</span>(!<span class="built_in">array</span>)&#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;创建数组失败！\n&quot;</span>);</span><br><span class="line">        <span class="built_in">exit</span>(<span class="number">1</span>); </span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 向内存中写入数据</span></span><br><span class="line">    <span class="keyword">for</span>(i=<span class="number">0</span>; i&lt;arrLen; i++)&#123;</span><br><span class="line">        <span class="built_in">array</span>[i] = i+<span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 循环输出数组元素</span></span><br><span class="line">    <span class="keyword">for</span>(i=<span class="number">0</span>; i&lt;arrLen; i++)&#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;%d  &quot;</span>, <span class="built_in">array</span>[i]);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;\n&quot;</span>);</span><br><span class="line">    <span class="built_in">free</span>(<span class="built_in">array</span>); </span><br><span class="line">    </span><br><span class="line">    system(<span class="string">&quot;pause&quot;</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>malloc() 用来动态分配指定大小的内存空间，以字节计，其原型为：</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">void</span> *<span class="title function_">malloc</span><span class="params">( <span class="type">size_t</span> size )</span>;</span><br></pre></td></tr></table></figure>
+
+<p>size_t 是一种自定义数据类型，在 stddef.h 头文件中定义为：</p>
+ <figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="type">unsigned</span> <span class="type">int</span> <span class="type">size_t</span>;  <span class="comment">// 无符号整型</span></span><br></pre></td></tr></table></figure>
+
+<p>malloc()返回值类型为 void *，这并不是说该函数调用后无返回值，而是返回一个内存结点的地址，该地址的类型为void(无类型或类型不确定)，即一段存储区的首址，其具体类型无法确定，只有使用时根据各个域值数据再确定。</p>
+<h2 id="4-参考资料"><a href="#4-参考资料" class="headerlink" title="4. 参考资料"></a>4. 参考资料</h2><p>[1]<a href="https://www.cnblogs.com/jokerjason/p/10419129.html">Java ArrayList动态数组 - JokerJason - 博客园 (cnblogs.com)</a></p>
+<p>[2]<a href="http://c.biancheng.net/cpp/html/2790.html">C语言实现动态数组，克服静态数组大小固定的缺陷_C语言中文网 (biancheng.net)</a></p>
+]]></content>
+      <categories>
+        <category>Java</category>
+      </categories>
+      <tags>
+        <tag>Java</tag>
+        <tag>C</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>异或运算</title>
+    <url>/2022/03/15/%E5%BC%82%E6%88%96%E8%BF%90%E7%AE%97/</url>
+    <content><![CDATA[<h2 id="1-简介"><a href="#1-简介" class="headerlink" title="1. 简介"></a>1. 简介</h2><p>异或运算XOR 是 exclusive OR 的缩写。英语的 exclusive 意思是”专有的，独有的”，可以理解为 XOR 是更单纯的 OR 运算。</p>
+<p>我们知道，OR 运算的运算子有两种情况，计算结果为<code>true</code></p>
+<ul>
+<li><p>一个为 true，另一个为 false;</p>
+</li>
+<li><p>两个都为 true。</p>
+</li>
+</ul>
+<p>上面两种情况，有时候需要明确区分，所以引入了 XOR</p>
+<p>XOR 排除了第二种情况，只有第一种情况（一个运算子为<code>true</code>，另一个为<code>false</code>）才会返回 true，所以可以看成是更单纯的 OR 运算。也就是说， <strong>XOR 主要用来判断两个值是否不同</strong>：</p>
+<ul>
+<li>相同为True</li>
+<li>不同为False</li>
+</ul>
+<h2 id="2-性质"><a href="#2-性质" class="headerlink" title="2. 性质"></a>2. 性质</h2><ul>
+<li><strong>一个值与自身的运算，总是为 false</strong></li>
+<li><strong>一个值与 0 的运算，总是等于其本身</strong></li>
+<li><strong>满足交换律和结合律</strong></li>
+</ul>
+<h2 id="3-应用"><a href="#3-应用" class="headerlink" title="3. 应用"></a>3. 应用</h2><h3 id="3-1-简化计算"><a href="#3-1-简化计算" class="headerlink" title="3.1. 简化计算"></a>3.1. 简化计算</h3><p>运用异或运算的性质进行计算简化</p>
+<h3 id="3-2-交换值"><a href="#3-2-交换值" class="headerlink" title="3.2. 交换值"></a>3.2. 交换值</h3><p>利用异或运算的性质，实现无空间开销的交换数值：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">swap</span><span class="params">(<span class="type">int</span>[] arr, <span class="type">int</span> i, <span class="type">int</span> j)</span> &#123;</span><br><span class="line">    arr[i] = arr[i]^arr[j];</span><br><span class="line">    arr[j] = arr[i]^arr[j];</span><br><span class="line">    arr[i] = arr[i]^arr[j];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="3-3-加密"><a href="#3-3-加密" class="headerlink" title="3.3. 加密"></a>3.3. 加密</h3><ul>
+<li><p>明文（text）与密钥（key）进行异或运算，可以得到密文（cipherText）</p>
+</li>
+<li><p>密文与密钥再次进行异或运算，就可以还原成明文</p>
+</li>
+</ul>
+<h3 id="3-4-数据备份"><a href="#3-4-数据备份" class="headerlink" title="3.4. 数据备份"></a>3.4. 数据备份</h3><ul>
+<li>文件 x 和文件 y 进行异或运算，产生一个备份文件 z</li>
+<li>以后，无论是文件 x 或文件 y 损坏，只要不是两个原始文件同时损坏，就能根据另一个文件和备份文件，进行还原</li>
+</ul>
+<h2 id="4-解决问题"><a href="#4-解决问题" class="headerlink" title="4. 解决问题"></a>4. 解决问题</h2><h3 id="4-1-寻找仅出现一次的一个数"><a href="#4-1-寻找仅出现一次的一个数" class="headerlink" title="4.1. 寻找仅出现一次的一个数"></a>4.1. 寻找仅出现一次的一个数</h3><p>情景：某数列中只有一个数出现了一次，求该数</p>
+<p>思路：按照异或运算的性质，亦或运算满足交换律和结合律，偶数次相同的数亦或的结果为0，0亦或任何数等于任何数，所以只需要将数列全部亦或运算即可</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="type">int</span> <span class="title function_">onlyOnceNum</span><span class="params">(<span class="type">int</span>[] nums)</span> &#123;</span><br><span class="line">    <span class="type">int</span> <span class="variable">tmp</span> <span class="operator">=</span> <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i=<span class="number">0</span>;i&lt;nums.length;i++)&#123;</span><br><span class="line">        tmp = tmp^nums[i];</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> tmp;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<h3 id="4-2-寻找仅出现一次的两个数"><a href="#4-2-寻找仅出现一次的两个数" class="headerlink" title="4.2.  寻找仅出现一次的两个数"></a>4.2.  寻找仅出现一次的两个数</h3><p>情景：某数列中只有两个数出现了一次，求该两数</p>
+<p>思路：按照前一题的思路，将所有数亦或运算得到这两数的亦或结果，由于两数一定不同，所以在二进制表示法上一定有的位数是1，按照两数亦或结果为1的位数是否为1划分数列中的数，得到分别包含两数的两个子数列，将其中一个数列全部亦或，得到该数列中的这个数，与之前两数亦或的结果再亦或一次得到另一个数</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="type">int</span>[] onlyOnceTwoNums(<span class="type">int</span>[] nums) &#123;</span><br><span class="line">    <span class="type">int</span> <span class="variable">tmp</span> <span class="operator">=</span> <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i=<span class="number">0</span>;i&lt;nums.length;i++)&#123;</span><br><span class="line">        tmp = tmp^nums[i];</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//获得二进制最右边的1</span></span><br><span class="line">    <span class="type">int</span> <span class="variable">rightOne</span> <span class="operator">=</span> tmp &amp; (~tmp + <span class="number">1</span>);</span><br><span class="line">    <span class="type">int</span> <span class="variable">tmp2</span> <span class="operator">=</span> <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i=<span class="number">0</span>;i&lt;nums.length;i++)&#123;</span><br><span class="line">        <span class="keyword">if</span> ((nums[i] &amp; rightOne) == <span class="number">0</span>)</span><br><span class="line">            tmp2 = tmp2^nums[i];</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">int</span>[]&#123;tmp^tmp2, tmp2&#125;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<h3 id="4-3-寻找缺失的数"><a href="#4-3-寻找缺失的数" class="headerlink" title="4.3. 寻找缺失的数"></a>4.3. 寻找缺失的数</h3><p>情景：在范围0～n-1内的n个数字中有且只有一个数字不在该数组中，求该数</p>
+<p>思路：将所有数亦或运算再与0～n-1内的所有数亦或运算即可得到该数</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="type">int</span> <span class="title function_">missingNumber</span><span class="params">(<span class="type">int</span>[] nums)</span> &#123;</span><br><span class="line">    <span class="type">int</span> <span class="variable">tmp</span> <span class="operator">=</span> <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i=<span class="number">0</span>;i&lt;nums.length;i++)&#123;</span><br><span class="line">        tmp = tmp^i^nums[i];</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> tmp^(nums.length);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="5-参考资料"><a href="#5-参考资料" class="headerlink" title="5. 参考资料"></a>5. 参考资料</h2><p>[1]<a href="https://www.ruanyifeng.com/blog/2021/01/_xor.html">异或运算 XOR 教程 - 阮一峰的网络日志 (ruanyifeng.com)</a></p>
+<p>[2]<a href="https://leetcode-cn.com/problems/que-shi-de-shu-zi-lcof/">剑指 Offer 53 - II. 0～n-1中缺失的数字 - 力扣（LeetCode） (leetcode-cn.com)</a></p>
+]]></content>
+      <categories>
+        <category>Java</category>
+      </categories>
+      <tags>
+        <tag>Java</tag>
+        <tag>数据结构与算法</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>选择排序、冒泡排序、插入排序</title>
+    <url>/2022/03/15/%E9%80%89%E6%8B%A9%E6%8E%92%E5%BA%8F%E3%80%81%E5%86%92%E6%B3%A1%E6%8E%92%E5%BA%8F%E3%80%81%E6%8F%92%E5%85%A5%E6%8E%92%E5%BA%8F/</url>
+    <content><![CDATA[<h2 id="1-对数器的设定"><a href="#1-对数器的设定" class="headerlink" title="1. 对数器的设定"></a>1. 对数器的设定</h2><h2 id="1-1-对数器概念和使用"><a href="#1-1-对数器概念和使用" class="headerlink" title="1.1. 对数器概念和使用"></a>1.1. 对数器概念和使用</h2><p>　  - 有一个你想要的测的方法a<br>　  - 实现一个绝对正确但是复杂度不好的方法b<br>　  - 实现对比的方法</p>
+<ul>
+<li><p>把方法a和方法b对比很多次来验证方法a是否是正确的</p>
+</li>
+<li><p>如果有个样本使得对比出错，打印出样本分析是哪个方法出错的</p>
+</li>
+<li><p>当样本数量很多的时候，对比测试依然正确，可以确定方法a已经正确</p>
+</li>
+</ul>
+<p>　　</p>
+<h2 id="1-2-数组排序对数器"><a href="#1-2-数组排序对数器" class="headerlink" title="1.2. 数组排序对数器"></a>1.2. 数组排序对数器</h2><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">package</span> com.company;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.util.Arrays;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Main</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">int</span> <span class="variable">MIN</span> <span class="operator">=</span> <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">int</span> <span class="variable">MAX</span> <span class="operator">=</span> <span class="number">1000</span>;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">int</span> <span class="variable">MAXLENGTH</span> <span class="operator">=</span> <span class="number">10000</span>;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">int</span> <span class="variable">FREQUENCY</span> <span class="operator">=</span> <span class="number">10000</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;</span><br><span class="line">	<span class="comment">// write your code here</span></span><br><span class="line"></span><br><span class="line">        <span class="type">boolean</span> <span class="variable">succeed</span> <span class="operator">=</span> <span class="literal">true</span>;</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>; i &lt; FREQUENCY; i++) &#123;</span><br><span class="line">            <span class="type">int</span>[] arr = GenerateRandom();</span><br><span class="line">            <span class="type">int</span>[] arr2 = Arrays.copyOf(arr, arr.length);</span><br><span class="line"><span class="comment">//            Arrays.sort(arr);你测试的排序函数</span></span><br><span class="line">            comparator(arr2);</span><br><span class="line">            <span class="keyword">if</span> (!Arrays.equals(arr, arr2)) &#123;</span><br><span class="line">                succeed = <span class="literal">false</span>;</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        System.out.println(succeed?<span class="string">&quot;succeed&quot;</span>:<span class="string">&quot;failed&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/*</span></span><br><span class="line"><span class="comment">    产生随机数组</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="type">int</span>[] GenerateRandom()&#123;</span><br><span class="line">        <span class="type">int</span> <span class="variable">length</span> <span class="operator">=</span> (<span class="type">int</span>)(MAXLENGTH*Math.random());</span><br><span class="line">        <span class="type">int</span>[] arr = <span class="keyword">new</span> <span class="title class_">int</span>[length];</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>; i &lt; length; i++) &#123;</span><br><span class="line">            arr[i] = MIN + (<span class="type">int</span>)(Math.random()*(MAX-MIN));</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> arr;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/*</span></span><br><span class="line"><span class="comment">    最稳健的对比算法作为对比，此处调用JDK自带的排序算法</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">comparator</span><span class="params">(<span class="type">int</span>[] arr)</span>&#123;</span><br><span class="line">        Arrays.sort(arr);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="2-选择排序"><a href="#2-选择排序" class="headerlink" title="2. 选择排序"></a>2. 选择排序</h2><p>选择排序的实质就是每次从剩下的数组中选出最值</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">选择排序：实质就是每次选出最值</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">chooseSort</span><span class="params">(<span class="type">int</span>[] arr)</span>&#123;</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>; i &lt; arr.length - <span class="number">1</span>; i++) &#123;</span><br><span class="line">        <span class="type">int</span> <span class="variable">minIndex</span> <span class="operator">=</span> i;</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">j</span> <span class="operator">=</span> i + <span class="number">1</span>; j &lt; arr.length ; j++) &#123;</span><br><span class="line">            <span class="keyword">if</span> (arr[j] &lt; arr[minIndex]) &#123; <span class="comment">//choose minimum value</span></span><br><span class="line">                minIndex = j;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (i != minIndex)</span><br><span class="line">            swap(arr, i, minIndex);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">swap</span><span class="params">(<span class="type">int</span>[] arr, <span class="type">int</span> i, <span class="type">int</span> j)</span> &#123;</span><br><span class="line">    arr[i] = arr[i]^arr[j];</span><br><span class="line">    arr[j] = arr[i]^arr[j];</span><br><span class="line">    arr[i] = arr[i]^arr[j];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<h2 id="3-冒泡排序"><a href="#3-冒泡排序" class="headerlink" title="3. 冒泡排序"></a>3. 冒泡排序</h2><p>冒泡排序的实质就是进行N次比较</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">冒泡排序：实质就是进行N次比较</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">bubbleSort</span><span class="params">(<span class="type">int</span>[] arr)</span>&#123;</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>; i &lt; arr.length; i++) &#123;</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">j</span> <span class="operator">=</span> <span class="number">0</span>; j &lt; arr.length; j++) &#123;</span><br><span class="line">            <span class="keyword">if</span> (arr[j] &gt; arr[j+<span class="number">1</span>])&#123;</span><br><span class="line">                swap(arr, i, j);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<h2 id="4-插入排序"><a href="#4-插入排序" class="headerlink" title="4. 插入排序"></a>4. 插入排序</h2><p>插入排序的实质就是将一个数插入一个有序数组</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">插入排序：实质就是将一个数插入一个有序数组</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">insertSort</span><span class="params">(<span class="type">int</span>[] arr)</span>&#123;</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">1</span>; i &lt; arr.length; i++) &#123;</span><br><span class="line">        <span class="type">int</span> <span class="variable">tmp</span> <span class="operator">=</span> arr[i];</span><br><span class="line">        <span class="type">int</span> <span class="variable">j</span> <span class="operator">=</span> i;</span><br><span class="line">        <span class="keyword">while</span> (j&gt;<span class="number">0</span> &amp;&amp; arr[j-<span class="number">1</span>]&gt;tmp)&#123;<span class="comment">//将比他大的数后移</span></span><br><span class="line">            arr[j] = arr[j-<span class="number">1</span>];</span><br><span class="line">            j--;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (i != j)<span class="comment">//如果有比他小的数就插入，如果没有就下一次循环</span></span><br><span class="line">            arr[j] =tmp;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+]]></content>
+      <categories>
+        <category>Java</category>
+      </categories>
+      <tags>
+        <tag>Java</tag>
+        <tag>数据结构与算法</tag>
+      </tags>
+  </entry>
 </search>
